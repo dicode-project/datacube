@@ -7,6 +7,7 @@ package com.urbanairship.datacube;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -108,7 +109,9 @@ public class Address {
             }
         }
         
-        List<byte[]> keyElemsInOrder = Lists.reverse(reversedKeyElems);
+        //List<byte[]> keyElemsInOrder = Lists.reverse(reversedKeyElems);
+        List<byte[]> keyElemsInOrder = reversedKeyElems;
+        Collections.reverse(keyElemsInOrder);
         
         int totalKeySize = 0;
         for(byte[] keyElement: keyElemsInOrder) {
