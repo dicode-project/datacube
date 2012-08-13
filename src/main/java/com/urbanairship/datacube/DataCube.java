@@ -65,7 +65,7 @@ public class DataCube<T extends SerializableOp> {
     }
 
         // TODO: temporary constructor
-    public DataCube(List<Dimension<?>> dimensions, List<Rollup> rollups, ImmutableList<Slice> slices) {
+    public DataCube(List<Dimension<?>> dimensions, List<Rollup> rollups, List<Slice> slices) {
         this(dimensions, rollups);
         this.slices = slices;
     }
