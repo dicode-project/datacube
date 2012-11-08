@@ -18,11 +18,12 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+import com.urbanairship.datacube.AutoResumeResultScanner;
 import com.urbanairship.datacube.DebugHack;
 import com.urbanairship.datacube.Deserializer;
 import com.urbanairship.datacube.MergeIterator;
@@ -31,7 +32,7 @@ import com.urbanairship.datacube.ResultComparator;
 import com.urbanairship.datacube.dbharnesses.HBaseDbHarness;
 
 public class HBaseBackfillMergeMapper extends Mapper<Scan,NullWritable,NullWritable,NullWritable> {
-    private static final Logger log = LogManager.getLogger(HBaseBackfillMergeMapper.class);
+    private static final Logger log = LoggerFactory.getLogger(HBaseBackfillMergeMapper.class);
     
     public static enum Ctrs {ACTION_DELETED, ACTION_OVERWRITTEN, ACTION_UNCHANGED,
         ROWS_CHANGED_SINCE_SNAPSHOT, ROWS_NEW_SINCE_SNAPSHOT}; 
@@ -60,9 +61,9 @@ public class HBaseBackfillMergeMapper extends Mapper<Scan,NullWritable,NullWrita
             snapshotHTable = new HTable(conf, snapshotTableName);
             backfilledHTable = new HTable(conf, backfilledTableName);
 
-            liveCubeScanner = liveCubeHTable.getScanner(scan);
-            snapshotScanner = snapshotHTable.getScanner(scan);
-            backfilledScanner = backfilledHTable.getScanner(scan);
+            liveCubeScanner = new AutoResumeResultScanner(liveCubeHTable, scan);
+            snapshotScanner = new AutoResumeResultScanner(snapshotHTable, scan);
+            backfilledScanner = new AutoResumeResultScanner(backfilledHTable, scan);
             
             Iterator<Result> liveCubeIterator = liveCubeScanner.iterator();
             Iterator<Result> snapshotIterator = snapshotScanner.iterator();
@@ -191,7 +192,7 @@ public class HBaseBackfillMergeMapper extends Mapper<Scan,NullWritable,NullWrita
         /*
          * Merge the live cube table, the snapshot table, and the backfill table. We assume that the
          * snapshot table contains the values that existing before the backfill began, which means
-         * that we can estimate the values that arrived during the snapshot by (live-snapshot). By
+         * that we can estimate the values that arrived since the snapshot by (live-snapshot). By
          * adding the recently-arrived values to the backfilled values, we solve the problem of data
          * arriving during the snapshot that might not otherwise have been counted.
          * 

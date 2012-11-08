@@ -3,7 +3,9 @@ Copyright 2012 Urban Airship and Contributors
 */
 
 package com.urbanairship.datacube;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
@@ -13,13 +15,20 @@ import com.google.common.collect.ImmutableSet;
  * Use this class to describe a rollup that you want the datacube to keep.
  * 
  * For example, if you're counting events with the dimensions (color, size, flavor) and you
- * want to keep a total count for a (color, size) combination, you'd specify that using a Rollup. 
+ * want to keep a total count for all (color, size) combinations, you'd specify that using a Rollup. 
  */
 public class Rollup {
-    private final Set<DimensionAndBucketType> components;
+    private final List<DimensionAndBucketType> components;
+    
+    public Rollup(Dimension<?>... dims) {
+    	this.components = new ArrayList<DimensionAndBucketType>(dims.length);
+    	for(Dimension<?> dim: dims) {
+    		this.components.add(new DimensionAndBucketType(dim, BucketType.IDENTITY));
+    	}
+    }
     
     public Rollup(Set<DimensionAndBucketType> components) {
-        this.components = new HashSet<DimensionAndBucketType>(components); // defensive copy
+        this.components = new ArrayList<DimensionAndBucketType>(components); // defensive copy
     }
     
     /**
@@ -69,7 +78,7 @@ public class Rollup {
                 new DimensionAndBucketType(d2, bt2)));
     }
 
-    Set<DimensionAndBucketType> getComponents() {
+    List<DimensionAndBucketType> getComponents() {
         return components;
     }
     

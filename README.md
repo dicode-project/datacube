@@ -1,6 +1,6 @@
 ## Introduction
 
-A data cube is an abstraction for counting things in complicated ways [Wikipedia](http://en.wikipedia.org/wiki/OLAP_cube). This project is a Java implementation of a data cube backed by a pluggable database backend.
+A data cube is an abstraction for counting things in complicated ways ([Wikipedia](http://en.wikipedia.org/wiki/OLAP_cube)). This project is a Java implementation of a data cube backed by a pluggable database backend.
 
 The purpose of a data cube is to store aggregate information about large numbers of data points. The data cube stores aggregate information about interesting subsets of the input data points. For example, if you're writing a web server log analyzer, your input points could be log lines, and you might be interested in keeping a count for each browser type, each browser version, OS type, OS version, and other attributes. You might also be interested in counts for a particular *combination* of (browserType,browserVersion,osType), (browserType,browserVersion,osType,osVersion), etc. It's a challenge to quickly add and change counters without wasting time writing database code and reprocessing old data into new counters. A data cube helps you keep these counts. You declare what you want to count, and the data cube maintains all the counters as you supply new data points.
 
@@ -118,8 +118,25 @@ Read back your rollup values by calling DataCubeIo.get().
 
 ## Building
 
-You can pass -DhadoopVersion and -DhbaseVersion to maven to choose which version of Haodop and HBase to depend on. Hadoop 2 is not yet supported since the artifact names are different. For example: 
+The POM is configured to build with specific versions of HBase and Hadoop. If your versions differ from those in the POM, you can override the versions by passing hbaseVersion and hadooopVersion. For example:
 
 ```
-mvn -DhadoopVersion=1.0.2 -DhbaseVersion=0.94.0 package
+$ mvn -DhbaseVersion=0.90.6 -DhadoopVersion=0.20.2 package
 ```
+
+The build artifact jars each have a classifier of the form hbase${hbaseVersion}-hadoop${hadoopVersion}, so you can depend on them in another project by doing something like:
+
+```
+<dependency>
+  <groupId>com.urbanairship</groupId>
+  <artifactId>datacube</artifactId>
+  <version>${datacube.version}</version>
+  <classifier>hbase0.94.0-hadoop1.0.3</classifier>
+</dependency>
+```
+
+The main build artifact jar (without a classifer) uses the default HBase and Hadoop versions, which may change between datacube releases.
+
+You can pass -DhadoopVersion and -DhbaseVersion to maven to choose which version of Haodop and HBase to depend on. Hadoop 2 is not yet supported since the artifact names are different. For example: 
+
+To build against your own version of HBase or Hadoop, just add your repository to the POM and pass -DhbaseVersion or -DhadoopVersion to the datacube build.

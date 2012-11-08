@@ -6,6 +6,7 @@ package com.urbanairship.datacube.dbharnesses;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,8 +26,8 @@ import org.apache.hadoop.hbase.client.HTablePool;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
@@ -44,7 +45,7 @@ import com.yammer.metrics.core.Timer;
 
 public class HBaseDbHarness<T extends Op> implements DbHarness<T> {
     
-    private static final Logger log = LogManager.getLogger(HBaseDbHarness.class);
+    private static final Logger log = LoggerFactory.getLogger(HBaseDbHarness.class);
 
     public final static byte[] QUALIFIER = ArrayUtils.EMPTY_BYTE_ARRAY;
         
@@ -56,8 +57,8 @@ public class HBaseDbHarness<T extends Op> implements DbHarness<T> {
     private final IdService idService;
     private final ThreadPoolExecutor flushExecutor;
     private final CommitType commitType; 
-    private final int numIoeRetries;
-    private final int numCasRetries;
+    private final int numIoeTries;
+    private final int numCasTries;
     private final Timer flushSuccessTimer;
     private final Timer flushFailTimer;
     private final Timer singleWriteTimer;
@@ -74,7 +75,7 @@ public class HBaseDbHarness<T extends Op> implements DbHarness<T> {
     
     public HBaseDbHarness(HTablePool pool, byte[] uniqueCubeName, byte[] tableName, 
             byte[] cf, Deserializer<T> deserializer, IdService idService, CommitType commitType, 
-            int numFlushThreads, int numIoeRetries, int numCasRetries, String metricsScope)
+            int numFlushThreads, int numIoeTries, int numCasTries, String metricsScope)
                     throws IOException {
         this.pool = pool;
         this.deserializer = deserializer;
@@ -83,8 +84,8 @@ public class HBaseDbHarness<T extends Op> implements DbHarness<T> {
         this.cf = cf;
         this.idService = idService;
         this.commitType = commitType;
-        this.numIoeRetries = numIoeRetries;
-        this.numCasRetries = numCasRetries;
+        this.numIoeTries = numIoeTries;
+        this.numCasTries = numCasTries;
         
         flushSuccessTimer = Metrics.newTimer(HBaseDbHarness.class, "successfulBatchFlush", 
                 metricsScope, TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
@@ -123,13 +124,17 @@ public class HBaseDbHarness<T extends Op> implements DbHarness<T> {
         get.addFamily(cf);
         Result result = WithHTable.get(pool, tableName, get);
         if(result == null || result.isEmpty()) {
-            log.debug("Returning absent for address " + c + " key " + 
-                    Base64.encodeBase64String(rowKey));
+            if(log.isDebugEnabled()) {
+                log.debug("Returning absent for cube:" + Arrays.toString(uniqueCubeName) + 
+                        " for address:" + c + " key " + Base64.encodeBase64String(rowKey));
+            }
             return Optional.absent();
         } else {
             T deserialized = deserializer.fromBytes(result.value());
-            log.debug("Returning value for address " + c + ": " + " key " +
-                    Base64.encodeBase64String(rowKey) + ": " + deserialized);
+            if(log.isDebugEnabled()) {
+                log.debug("Returning value for cube:" + Arrays.toString(uniqueCubeName) + " address:" + 
+                        c + ": " + " key " + Base64.encodeBase64String(rowKey) + ": " + deserialized);
+            }
             return Optional.of(deserialized);
         }
     }
@@ -176,7 +181,7 @@ public class HBaseDbHarness<T extends Op> implements DbHarness<T> {
         public Object call() throws Exception {
             IOException lastIOException = null;
             try {
-                for(int attempt=0; attempt<numIoeRetries; attempt++) {
+                for(int attempt=0; attempt<numIoeTries; attempt++) {
                     try {
                         flushBatch(batch);
                         afterExecute.afterExecute(null); // null => no exception
@@ -184,7 +189,7 @@ public class HBaseDbHarness<T extends Op> implements DbHarness<T> {
                     } catch (IOException e) {
                         lastIOException = e;
                         log.error("IOException in worker thread flushing to HBase on attempt " + 
-                                attempt + "/" + numIoeRetries + ", will retry", e);
+                                attempt + "/" + numIoeTries + ", will retry", e);
                         Thread.sleep(500);
                     }
                 }
@@ -227,15 +232,15 @@ public class HBaseDbHarness<T extends Op> implements DbHarness<T> {
         Put put = new Put(rowKey);
         put.add(cf, QUALIFIER, combinedOp.serialize());
         
-        for(int i=0; i<numCasRetries; i++) {
+        for(int i=0; i<numCasTries; i++) {
             if(WithHTable.checkAndPut(pool, tableName, rowKey, cf, QUALIFIER, prevSerializedOp, put)) {
                 return; // successful write
             } else {
-                log.warn("checkAndPut failed on try " + (i+1) + " out of " + numCasRetries);
+                log.warn("checkAndPut failed on try " + (i+1) + " out of " + numCasTries);
             }
         }
         
-        throw new IOException("Exhausted retries doing checkAndPut after " + numCasRetries + 
+        throw new IOException("Exhausted retries doing checkAndPut after " + numCasTries + 
                 " tries");
     }
     
@@ -277,6 +282,10 @@ public class HBaseDbHarness<T extends Op> implements DbHarness<T> {
                 long writeDurationNanos = System.nanoTime() - nanoTimeBeforeWrite;
                 singleWriteTimer.update(writeDurationNanos, TimeUnit.NANOSECONDS);
                 
+                if(log.isDebugEnabled()) {
+                    log.debug("Succesfully wrote cube:" + Arrays.toString(uniqueCubeName) + 
+                            " address:" + address);
+                }
                 succesfullyWritten.add(address);
             }
         } catch (IOException e) {
