@@ -51,6 +51,9 @@ public class RowOp implements IRowOp {
                 newRowOp.addColumnOp(columnQualifier, (SerializableOp) otherColumnOp
                     .getValue().add(newRowOp.getColumnOps().get(columnQualifier)));
             }
+            else {
+                newRowOp.addColumnOp(columnQualifier, otherColumnOp.getValue());
+            }
         }
 
         return newRowOp;
