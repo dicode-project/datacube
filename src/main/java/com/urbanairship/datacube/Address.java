@@ -4,6 +4,9 @@ Copyright 2012 Urban Airship and Contributors
 
 package com.urbanairship.datacube;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -11,9 +14,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 public class Address {
 //    private static final Logger log = LogManager.getLogger(Address.class);
@@ -88,13 +88,15 @@ public class Address {
                     elem = idService.getId(dimensionNum, bucketAndCoord.bucket, 
                             dimension.getNumFieldBytes()); // throws IOException
                 }
-                
+
+                /*
                 if(elem.length != thisDimBucketLen) {
-                    throw new IllegalArgumentException("Field length was wrong (after bucketing " + 
-                            " and unique ID substitution). For dimension " + dimension + 
+                    throw new IllegalArgumentException("Field length was wrong (after bucketing" +
+                            " and unique ID substitution). For dimension " + dimension +
                             ", expected length " + dimension.getNumFieldBytes() + " but was " + 
                             bucketAndCoord.bucket.length);
                 }
+                */
                 
                 byte[] bucketTypeId = bucketAndCoord.bucketType.getUniqueId(); 
                 if(bucketTypeId.length != thisDimBucketTypeLen) {

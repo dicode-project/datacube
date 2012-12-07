@@ -34,10 +34,12 @@ public class WriteBuilder {
                 throw new IllegalArgumentException("SLICE_WILDCARD_VALUE must not be used directly");
             }
 
+            /*
             if(bucket.length != expectedBucketLen && !dimension.getDoIdSubstitution()) {
                 throw new IllegalArgumentException("Bucket serialized to " + bucket.length +
                         " bytes but should have been " + expectedBucketLen + " bytes");
             }
+            */
             buckets.put(new DimensionAndBucketType(dimension, bucketType), bucket);
         }
         return this;

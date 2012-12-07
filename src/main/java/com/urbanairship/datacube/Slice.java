@@ -16,7 +16,6 @@
  */
 package com.urbanairship.datacube;
 
-import com.google.common.collect.ImmutableSet;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.util.Set;
@@ -75,4 +74,13 @@ public class Slice {
 		return this.dimsAndBuckets;
 	}
 
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("(Slice for dimension ").append(getVariableDimension());
+        sb.append(" with wildcard value ").append(getWildcardValue());
+        sb.append(" and Dims and Buckets: ").append(getDimensionsAndBucketTypes());
+        sb.append(")");
+        return sb.toString();
+    }
 }

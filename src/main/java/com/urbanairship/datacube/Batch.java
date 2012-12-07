@@ -4,20 +4,31 @@ Copyright 2012 Urban Airship and Contributors
 
 package com.urbanairship.datacube;
 
-import java.util.Map;
-
 import com.google.common.collect.Maps;
 import com.urbanairship.datacube.ops.IRowOp;
 import com.urbanairship.datacube.ops.SerializableOp;
 
+import java.util.Map;
+
 public class Batch<T extends SerializableOp> {
     private Map<Address,IRowOp> map;
-    
-    Batch() {
+
+    /**
+     * Normally you should not create your own Batches but instead have {@link DataCubeIo} create
+     * them for you. You can use this if you intend to bypass the high-level magic and you really
+     * know what you're doing.
+     */
+    public Batch() {
         this.map = Maps.newHashMap();
     }
-    
-    Batch(Map<Address,IRowOp> map) {
+
+    /**
+     * Normally you should not create your own Batches but instead have {@link DataCubeIo} create
+     * them for you. You can use this if you intend to bypass the high-level magic and you really
+     * know what you're doing.
+     * @param map some Ops to wrap in this Batch
+     */
+    public Batch(Map<Address,IRowOp> map) {
         this.map = map;
     }
     
