@@ -74,6 +74,25 @@ public class Slice {
 		return this.dimsAndBuckets;
 	}
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Slice slice = (Slice) o;
+
+        if (!dimsAndBuckets.equals(slice.dimsAndBuckets)) return false;
+        if (!variableDim.equals(slice.variableDim)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = dimsAndBuckets.hashCode();
+        result = 31 * result + variableDim.hashCode();
+        return result;
+    }
 
     public String toString() {
         StringBuilder sb = new StringBuilder();

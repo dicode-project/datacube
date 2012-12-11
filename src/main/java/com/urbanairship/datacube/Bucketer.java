@@ -70,5 +70,15 @@ public interface Bucketer<F> {
         public CSerializable bucketForRead(Object coordinateField, BucketType bucketType) {
             return (CSerializable)coordinateField;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            return this == o || (o != null && getClass() == o.getClass());
+        }
+
+        @Override
+        public int hashCode() {
+            return getClass().hashCode();
+        }
     }
 }

@@ -41,4 +41,14 @@ public class BigEndianLongBucketer implements Bucketer<Long> {
     public Long readBucket(BoxedByteArray key, BucketType btype) {
         return LONG_SERIALIZABLE.deserialize(key.bytes);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return this == o || (o != null && getClass() == o.getClass());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

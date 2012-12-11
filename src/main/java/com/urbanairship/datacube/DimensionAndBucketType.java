@@ -57,25 +57,15 @@ public class DimensionAndBucketType {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        // Eclipse-generated and slightly modified
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        DimensionAndBucketType other = (DimensionAndBucketType) obj;
-        if (bucketType == null) {
-            if (other.bucketType != null)
-                return false;
-        } else if (bucketType != other.bucketType)
-            return false;
-        if (dimension == null) {
-            if (other.dimension != null)
-                return false;
-        } else if (dimension != other.dimension)
-            return false;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DimensionAndBucketType that = (DimensionAndBucketType) o;
+
+        if (bucketType != null ? !bucketType.equals(that.bucketType) : that.bucketType != null) return false;
+        if (dimension != null ? !dimension.equals(that.dimension) : that.dimension != null) return false;
+
         return true;
     }
 }

@@ -10,7 +10,6 @@ import com.urbanairship.datacube.BucketType;
 import com.urbanairship.datacube.Bucketer;
 import com.urbanairship.datacube.CSerializable;
 import com.urbanairship.datacube.serializables.EnumSerializable;
-
 import org.apache.commons.lang.NotImplementedException;
 
 import java.util.List;
@@ -50,5 +49,15 @@ public class EnumToOrdinalBucketer<T extends Enum<?>>  implements Bucketer<T> {
     @Override
     public T readBucket(BoxedByteArray key, BucketType btype) {
         throw new NotImplementedException("EnumSerializable does not support deserialization right now");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return this == o || (o != null && getClass() == o.getClass());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }
