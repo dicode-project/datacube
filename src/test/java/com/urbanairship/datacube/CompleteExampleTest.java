@@ -99,6 +99,16 @@ public class CompleteExampleTest {
             public City readBucket(BoxedByteArray key, BucketType btype) {
                 return null;  //To change body of implemented methods use File | Settings | File Templates.
             }
+
+            @Override
+            public boolean equals(Object o) {
+                return this == o || (o != null && getClass() == o.getClass());
+            }
+
+            @Override
+            public int hashCode() {
+                return getClass().hashCode();
+            }
         };
 
         /**
@@ -149,6 +159,16 @@ public class CompleteExampleTest {
             @Override
             public DeviceType readBucket(BoxedByteArray key, BucketType btype) {
                 throw new NotImplementedException("Not needed in test");
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                return this == o || (o != null && getClass() == o.getClass());
+            }
+
+            @Override
+            public int hashCode() {
+                return getClass().hashCode();
             }
         }
 

@@ -73,7 +73,7 @@ public class Dimension<F> {
         return name;
     }
     
-    Bucketer<F> getBucketer() {
+    public Bucketer<F> getBucketer() {
         return bucketer;
     }
     
@@ -87,5 +87,31 @@ public class Dimension<F> {
     
     boolean isBucketed() {
         return isBucketed;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Dimension dimension = (Dimension) o;
+
+        if (doIdSubstitution != dimension.doIdSubstitution) return false;
+        if (numFieldBytes != dimension.numFieldBytes) return false;
+        if (bucketer != null ? !bucketer.equals(dimension.bucketer) : dimension.bucketer != null) return false;
+        if (name != null ? !name.equals(dimension.name) : dimension.name != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (bucketer != null ? bucketer.hashCode() : 0);
+        result = 31 * result + (doIdSubstitution ? 1 : 0);
+        result = 31 * result + numFieldBytes;
+        result = 31 * result + bucketPrefixSize;
+        result = 31 * result + (isBucketed ? 1 : 0);
+        return result;
     }
 }

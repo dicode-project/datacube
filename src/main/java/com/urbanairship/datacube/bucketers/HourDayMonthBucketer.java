@@ -80,4 +80,14 @@ public class HourDayMonthBucketer implements Bucketer<DateTime> {
     public static DateTime weekFloor(DateTime dt) {
         return dayFloor(dt.minusDays(dt.getDayOfWeek() -1));
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return this == o || (o != null && getClass() == o.getClass());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
