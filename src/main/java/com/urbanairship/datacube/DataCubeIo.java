@@ -312,8 +312,7 @@ public class DataCubeIo<T extends SerializableOp> {
      * @param <K> type of the Key
      * @return An optional containing a Map of columns/keys and their counts
      */
-    public <K> Optional<Map<K, T>> getSlice(ReadBuilder at, Bucketer<K> bucketer, BucketType btype) {
-        Address sliceAddr = at.build();
+    public <K> Optional<Map<K, T>> getSlice(Address sliceAddr, Bucketer<K> bucketer, BucketType btype) {
         Optional<Map<BoxedByteArray, T>> optional = null;
         try {
             optional = db.getSlice(sliceAddr);
@@ -334,5 +333,9 @@ public class DataCubeIo<T extends SerializableOp> {
         }
 
         return Optional.of(castedMap);
+    }
+
+    public <K> Optional<Map<K, T>> getSlice(ReadBuilder at, Bucketer<K> bucketer, BucketType btype) {
+        return getSlice(at.build(), bucketer, btype);
     }
 }
