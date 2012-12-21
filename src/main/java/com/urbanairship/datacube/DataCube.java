@@ -4,14 +4,20 @@ Copyright 2012 Urban Airship and Contributors
 
 package com.urbanairship.datacube;
 
+
 import com.google.common.base.Optional;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.urbanairship.datacube.ops.IRowOp;
 import com.urbanairship.datacube.ops.RowOp;
 import com.urbanairship.datacube.ops.SerializableOp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.Map.Entry;
+
 
 /**
  * A hypercube abstraction for storing number-like data. Good for storing counts of events
@@ -20,6 +26,8 @@ import java.util.Map.Entry;
  * stored as a LongOp.
  */
 public class DataCube<T extends SerializableOp> {
+    private static final Logger log = LoggerFactory.getLogger(DataCube.class);
+
 	public static final BoxedByteArray EMPTY_COLUMN_QUALIFIER = new BoxedByteArray("".getBytes());
 
     private final List<Dimension<?>> dims;
@@ -84,19 +92,34 @@ public class DataCube<T extends SerializableOp> {
             for(Dimension<?> dimension: dims) {
                 outputAddress.at(dimension, BucketTypeAndBucket.WILDCARD);
             }
-
+            
+            boolean allBucketsPresent = true;
+            Map<DimensionAndBucketType,byte[]> buckets = writeBuilder.getBuckets();
             for(DimensionAndBucketType dimAndBucketType: rollup.getComponents()) {
                 Dimension<?> dimension = dimAndBucketType.dimension;
                 BucketType bucketType = dimAndBucketType.bucketType;
-                byte[] bucket = writeBuilder.getBuckets().get(dimAndBucketType);
-                if (bucket == null) {
-                    throw new IllegalStateException("DataCube.getWrites: bucket == null; "
-                            + " dimAndBucketType: " + dimAndBucketType);
+                byte[] bucket = buckets.get(dimAndBucketType);
+                if(bucket == null) {
+                    allBucketsPresent = false;
+                    if(!dimension.isNullable()) {
+                        throw new IllegalArgumentException(
+                                "Didn't get a value for non-nullable dimension " + 
+                                dimension.getName());
+                    }
+                    if(log.isDebugEnabled()) {
+                        log.debug("Skipping rollup since bucket is missing for " + 
+                                dimension.getName());
+                    }
+                    break;
                 }
                 outputAddress.at(dimension, bucketType, bucket);
             }
-
-
+            
+            if(!allBucketsPresent) {
+                continue; // skip this rollup since at least one of its input 
+                          // dimensions wasn't specified.
+            }
+            
             boolean shouldWrite = true;
 
             RollupFilter rollupFilter = filters.get(rollup);
@@ -167,7 +190,7 @@ public class DataCube<T extends SerializableOp> {
         Set<DimensionAndBucketType> dimsAndBucketsSpecified = new HashSet<DimensionAndBucketType>(addr.getBuckets().size());
 
         // Find out which dimensions have literal values (not wildcards)
-        for(Entry<Dimension<?>,BucketTypeAndBucket> e: addr.getBuckets().entrySet()) {
+        for(Map.Entry<Dimension<?>,BucketTypeAndBucket> e: addr.getBuckets().entrySet()) {
             BucketTypeAndBucket bucketTypeAndCoord = e.getValue();
             if(bucketTypeAndCoord == BucketTypeAndBucket.WILDCARD) {
                 continue;
