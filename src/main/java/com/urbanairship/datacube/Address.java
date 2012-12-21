@@ -103,7 +103,7 @@ public class Address {
                     throw new RuntimeException("Bucket prefix length was wrong. For dimension " + 
                             dimension + ", expected bucket prefix of length " + dimension.getBucketPrefixSize() +
                             " but the bucket prefix was " + Arrays.toString(bucketTypeId) +
-                            " which had length" + bucketTypeId.length);
+                            " which had length " + bucketTypeId.length);
                 }
                 reversedKeyElems.add(elem);
                 reversedKeyElems.add(bucketTypeId);

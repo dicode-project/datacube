@@ -89,6 +89,10 @@ public class DataCube<T extends SerializableOp> {
                 Dimension<?> dimension = dimAndBucketType.dimension;
                 BucketType bucketType = dimAndBucketType.bucketType;
                 byte[] bucket = writeBuilder.getBuckets().get(dimAndBucketType);
+                if (bucket == null) {
+                    throw new IllegalStateException("DataCube.getWrites: bucket == null; "
+                            + " dimAndBucketType: " + dimAndBucketType);
+                }
                 outputAddress.at(dimension, bucketType, bucket);
             }
 
